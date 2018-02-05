@@ -13,7 +13,7 @@
 L.Routing = L.Control.extend({
 
   // INCLUDES
-  includes: [L.Mixin.Events]
+  includes: [L.Evented.prototype]
 
   // CONSTANTS
   ,statics: {

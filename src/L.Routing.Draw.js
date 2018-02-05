@@ -11,7 +11,7 @@
 L.Routing.Draw = L.Handler.extend({
 
   // INCLUDES
-  includes: [L.Mixin.Events]
+  includes: [L.Evented.prototype]
 
   // OPTIONS
   ,options: {}
