@@ -195,15 +195,19 @@ L.Routing = L.Control.extend({
         marker.setIcon(icons.normal);
     }
 
-    if (this._waypoints._first && next && next._leaflet_id === this._waypoints._first._leaflet_id) {
+    var nextIsCurrentFirst = (next && this.getFirst() && next._leaflet_id === this.getFirst()._leaflet_id);
+    var prevIsCurrentFirst = (prev && this.getFirst() && prev._leaflet_id === this.getFirst()._leaflet_id);
+    var prevIsCurrentLast = (prev && this.getLast() && prev._leaflet_id === this.getLast()._leaflet_id);
+
+    if (nextIsCurrentFirst) {
       next.setIcon(icons.normal);
     }
-    if (this._waypoints._last && prev && prev._leaflet_id === this._waypoints._last._leaflet_id && prev._leaflet_id !== this._waypoints._first._leaflet_id) {
+    if (prevIsCurrentLast && !prevIsCurrentFirst) {
       prev.setIcon(icons.normal);
     }
 
 
-    if (this._waypoints._first === null && this._waypoints._last === null) {
+    if (this.getFirst() === null && this.getLast() === null) {
       this._waypoints._first = marker;
       this._waypoints._last = marker;
     } else if (next === null) {
@@ -261,14 +265,18 @@ L.Routing = L.Control.extend({
     var prev = marker._routing.prevMarker;
     var next = marker._routing.nextMarker;
 
-    if (this._waypoints._first && marker._leaflet_id === this._waypoints._first._leaflet_id) {
+    if (this.getFirst() && marker._leaflet_id === this.getFirst()._leaflet_id) {
       this._waypoints._first = next;
-      next.setIcon(this.options.icons.start);
+      if (next) {
+        next.setIcon(this.options.icons.start);
+      }
     }
 
-    if (this._waypoints._last && marker._leaflet_id === this._waypoints._last._leaflet_id) {
+    if (this.getLast() && marker._leaflet_id === this.getLast()._leaflet_id) {
       this._waypoints._last = prev;
-      prev.setIcon(this.options.icons.end);
+      if (prev) {
+        prev.setIcon(this.options.icons.end);
+      }
     }
 
     if (prev !== null) {
