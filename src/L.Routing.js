@@ -265,16 +265,17 @@ L.Routing = L.Control.extend({
     var prev = marker._routing.prevMarker;
     var next = marker._routing.nextMarker;
 
-    if (this.getFirst() && marker._leaflet_id === this.getFirst()._leaflet_id) {
+    var removedFirst = this.getFirst() && marker._leaflet_id === this.getFirst()._leaflet_id;
+    var removedLast = this.getLast() && marker._leaflet_id === this.getLast()._leaflet_id;
+    if (removedFirst) {
       this._waypoints._first = next;
       if (next) {
         next.setIcon(this.options.icons.start);
       }
-    }
-
-    if (this.getLast() && marker._leaflet_id === this.getLast()._leaflet_id) {
+    } else if (removedLast) {
       this._waypoints._last = prev;
-      if (prev) {
+      // do not replace previous marker if it was the start!
+      if (prev && prev._leaflet_id !== this.getFirst()._leaflet_id) {
         prev.setIcon(this.options.icons.end);
       }
     }
