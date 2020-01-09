@@ -272,7 +272,8 @@ L.Routing = L.Control.extend({
       if (next) {
         next.setIcon(this.options.icons.start);
       }
-    } else if (removedLast) {
+    } 
+    if (removedLast) {
       this._waypoints._last = prev;
       // do not replace previous marker if it was the start!
       if (prev && prev._leaflet_id !== this.getFirst()._leaflet_id) {
