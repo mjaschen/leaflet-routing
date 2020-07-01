@@ -175,7 +175,7 @@ L.Routing = L.Control.extend({
   */
   ,addWaypoint: function(marker, prev, next, cb) {
     if (marker instanceof L.LatLng) {
-      marker = new L.Marker(marker, { title: this.options.tooltips.waypoint });
+      marker = new L.Marker(marker, { title: this.options.tooltips.waypoint, draggable: true });
     }
 
     marker._routing = {
@@ -241,7 +241,6 @@ L.Routing = L.Control.extend({
 
     this.routeWaypoint(marker, cb);
     this._waypoints.addLayer(marker);
-    marker.dragging.enable();
   }
 
   /**

@@ -292,17 +292,16 @@ L.Routing.Draw = L.Handler.extend({
   ,_onMouseClick: function(e) {
     if (this._hidden) { return; }
 
-    var marker, latlng, last;
+    var latlng, last;
 
     latlng = e.latlng;
     if (this.options.snapping) {
       latlng = L.LineUtil.snapToLayers(latlng, null, this.options.snapping);
     }
-    marker = new L.Marker(latlng, {title: this.options.tooltips.waypoint });
     last = this._parent.getLast();
 
     this._setTrailer(latlng, latlng);
-    this._parent.addWaypoint(marker, last, null, function(err, data) {
+    this._parent.addWaypoint(latlng, last, null, function(err, data) {
       // console.log(err, data);
     });
   }
