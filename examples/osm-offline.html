@@ -65,9 +65,9 @@
     });
 
     L.control.layers({
-        'OpenStreetMap': osm,
         'Topo (Kartverket)': topo,
         'Landscape (Thunderforest)': thunderforest,
+        'OpenStreetMap': osm
     }, {
         'Hiking (Waymarked Trails)': waymarkedtrails
     }).addTo(map);
@@ -86,7 +86,9 @@
         var proxy = 'http://www2.turistforeningen.no/routing.php?url=';
         var route = 'http://www.openstreetmap.org/api/0.6/map';
         var params = '&bbox=' + map.getBounds().toBBoxString() + '&1=2';
-        $.get(proxy + route + params).always(function(osm, status) {
+        //$.get(proxy + route + params).always(function(osm, status) {
+        $.get('map.osm').always(function(osm, status) {
+          osm = (new DOMParser()).parseFromString(osm, "text/xml");
           if (status === 'success' && typeof osm === 'object') {
             var geojson = osmtogeojson(osm);
 
@@ -126,7 +128,10 @@
     routing = new L.Routing({
       position: 'topleft'
       ,routing: {
-        router: router
+        //router: router
+        router: function(m1, m2, cb) {
+            return cb(null);
+        }
       }
       ,snapping: {
         layers: []
@@ -141,12 +146,11 @@
     routing.draw()
   </script>
   
-  <!-- CSS GitHub ribbon by Simon Whitaker https://github.com/simonwhitaker/github-fork-ribbon-css
+  <!-- CSS GitHub ribbon by Simon Whitaker https://github.com/simonwhitaker/github-fork-ribbon-css -->
   <div class="github-fork-ribbon-wrapper left-bottom">
     <div class="github-fork-ribbon">
       <a href="https://github.com/Turistforeningen/leaflet-routing">Fork me on GitHub</a>
     </div>
   </div>
-   -->
 </body>
 </html>
