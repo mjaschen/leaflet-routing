@@ -184,6 +184,8 @@ L.Routing = L.Control.extend({
       ,prevLine   : null
       ,nextLine   : null
       ,timeoutID  : null
+      // nextLine is a straight line to next marker without routing
+      ,beeline    : false
     };
 
     var icons = this.options.icons;
@@ -239,6 +241,9 @@ L.Routing = L.Control.extend({
     marker.on('drag'     , this._fireWaypointEvent, this);
     marker.on('click'    , this._fireWaypointEvent, this);
 
+    if (prev && next && prev._routing.beeline) {
+      marker._routing.beeline = true;
+    }
     this.routeWaypoint(marker, cb);
     this._waypoints.addLayer(marker);
   }
@@ -401,7 +406,7 @@ L.Routing = L.Control.extend({
       return cb(null, true);
     }
 
-    this._router(m1.getLatLng(), m2.getLatLng(), function(err, layer) {
+    var handleLayer = function(err, layer) {
       if (typeof layer === 'undefined') {
         var layer = new L.Polyline([m1.getLatLng(), m2.getLatLng()], $this.options.styles.nodata);
       } else {
@@ -422,7 +427,13 @@ L.Routing = L.Control.extend({
       m2._routing.prevLine = layer;
 
       return cb(err, layer);
-    });
+    };
+
+    if (!m1._routing.beeline) {
+      this._router(m1.getLatLng(), m2.getLatLng(), handleLayer);
+    } else {
+      handleLayer();
+    }
   }
 
   /**

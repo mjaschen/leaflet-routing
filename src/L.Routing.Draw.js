@@ -299,6 +299,9 @@ L.Routing.Draw = L.Handler.extend({
       latlng = L.LineUtil.snapToLayers(latlng, null, this.options.snapping);
     }
     last = this._parent.getLast();
+    if (last && e.originalEvent.ctrlKey) {
+      last._routing.beeline = true;
+    }
 
     this._setTrailer(latlng, latlng);
     this._parent.addWaypoint(latlng, last, null, function(err, data) {

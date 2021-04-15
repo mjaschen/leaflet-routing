@@ -125,6 +125,8 @@ L.Routing.Edit = L.Handler.extend({
     this._mouseMarker.on('drag'         , this._segmentOnDrag, this);
     this._mouseMarker.on('dragend'      , this._segmentOnDragend, this);
 
+    this._mouseMarker.on('click'        , this._segmentOnClick, this);
+
     this._parent.on('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.on('waypoint:drag'     , this._waypointOnDrag, this);
     this._parent.on('waypoint:dragend'  , this._waypointOnDragend, this);
@@ -151,6 +153,8 @@ L.Routing.Edit = L.Handler.extend({
     this._mouseMarker.off('dragstart'    , this._segmentOnDragstart, this);
     this._mouseMarker.off('drag'         , this._segmentOnDrag, this);
     this._mouseMarker.off('dragend'      , this._segmentOnDragend, this);
+
+    this._mouseMarker.off('click'        , this._segmentOnClick, this);
 
     this._parent.off('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.off('waypoint:drag'     , this._waypointOnDrag, this);
@@ -283,6 +287,26 @@ L.Routing.Edit = L.Handler.extend({
     this._dragging = false;
     this._setTrailers(null, null, null, false);
     this.fire('segment:dragend');
+  }
+
+  /**
+   * Mouse marker clicked
+   *
+   * @access private
+   *
+   * @param <L.Event> e - mouse click event
+   *
+   * @return void
+  */
+   ,_segmentOnClick: function(e) {
+    var next = this._mouseMarker._snapping.nextMarker;
+    var prev = this._mouseMarker._snapping.prevMarker;
+    L.DomEvent.stop(e);
+
+    prev._routing.beeline = !prev._routing.beeline;
+    this._parent._routeSegment(prev, next, function(err, data) {});
+
+    this.fire('segment:click');
   }
 
   /**
