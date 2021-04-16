@@ -299,14 +299,18 @@ L.Routing.Edit = L.Handler.extend({
    * @return void
   */
    ,_segmentOnClick: function(e) {
+    var $this = this;
     var next = this._mouseMarker._snapping.nextMarker;
     var prev = this._mouseMarker._snapping.prevMarker;
     L.DomEvent.stop(e);
 
     prev._routing.beeline = !prev._routing.beeline;
-    this._parent._routeSegment(prev, next, function(err, data) {});
 
     this.fire('segment:click');
+    this._parent.fire('routing:rerouteSegmentStart');
+    this._parent._routeSegment(prev, next, function(err, data) {
+      $this._parent.fire('routing:rerouteSegmentEnd', { err: err });
+    });
   }
 
   /**
