@@ -408,7 +408,14 @@ L.Routing = L.Control.extend({
 
     var handleLayer = function(err, layer) {
       if (typeof layer === 'undefined') {
-        var layer = new L.Polyline([m1.getLatLng(), m2.getLatLng()], $this.options.styles.nodata);
+        // connect end of previous line with start of next line, or markers
+        // TODO only after new result for those, if also re-routed
+        var prevLatLngs = m1._routing.prevLine ? m1._routing.prevLine.getLatLngs() : null;
+        var latLng1 = prevLatLngs ? prevLatLngs[prevLatLngs.length - 1] : m1.getLatLng();
+        var nextLatLngs = m2._routing.nextLine ? m2._routing.nextLine.getLatLngs() : null;
+        var latLng2 = nextLatLngs ? nextLatLngs[0] : m2.getLatLng();
+
+        var layer = new L.Polyline([latLng1, latLng2], $this.options.styles.nodata);
       } else {
         layer.setStyle($this.options.styles.track);
       }
