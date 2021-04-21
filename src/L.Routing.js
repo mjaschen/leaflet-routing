@@ -337,6 +337,7 @@ L.Routing = L.Control.extend({
       i++;
       firstErr = firstErr || err;
       if (i === 2) {
+        $this._updateBeelines();
         $this.fire('routing:routeWaypointEnd', { err: firstErr });
         cb(firstErr, marker);
       }
@@ -369,6 +370,7 @@ L.Routing = L.Control.extend({
       callbackCount++;
       firstErr = firstErr || err;
       if (callbackCount >= numSegments) {
+        $this._updateBeelines();
         $this.fire('routing:rerouteAllSegmentsEnd', { err: firstErr });
         if (cb) {
           cb(firstErr);
@@ -409,31 +411,12 @@ L.Routing = L.Control.extend({
 
     var handleLayer = function(err, layer) {
       if (typeof layer === 'undefined') {
-        // connect end of previous line with start of next line, or markers
-        // TODO only after new result for those, if also re-routed
-        var prevLatLngs = m1._routing.prevLine ? m1._routing.prevLine.getLatLngs() : null;
-        var latLng1 = prevLatLngs ? prevLatLngs[prevLatLngs.length - 1] : m1.getLatLng();
-        var nextLatLngs = m2._routing.nextLine ? m2._routing.nextLine.getLatLngs() : null;
-        var latLng2 = nextLatLngs ? nextLatLngs[0] : m2.getLatLng();
-        var style = m1._routing.beeline ? $this.options.styles.beeline : $this.options.styles.nodata;
-
-        var layer = new L.Polyline([latLng1, latLng2], style);
+        var layer = new L.Polyline([m1.getLatLng(), m2.getLatLng()], $this.options.styles.nodata);
       } else {
         layer.setStyle($this.options.styles.track);
       }
 
-      layer._routing = {
-        prevMarker: m1
-        ,nextMarker: m2
-      };
-
-      if (m1._routing.nextLine !== null) {
-        $this._segments.removeLayer(m1._routing.nextLine);
-      }
-      $this._segments.addLayer(layer);
-
-      m1._routing.nextLine = layer;
-      m2._routing.prevLine = layer;
+      $this._updateLayer(m1, m2, layer);
 
       return cb(err, layer);
     };
@@ -441,8 +424,42 @@ L.Routing = L.Control.extend({
     if (!m1._routing.beeline) {
       this._router(m1.getLatLng(), m2.getLatLng(), handleLayer);
     } else {
-      handleLayer();
+      // beelines are not routed and connected at the end
+      return cb();
     }
+  }
+
+  ,_updateBeelines: function() {
+    // for simplicity, just always update all beelines
+    this._eachSegment(function(m1, m2, line) {
+      if (m1._routing.beeline) {
+        // connect end of previous line with start of next line, or markers
+        var prevLatLngs = m1._routing.prevLine ? m1._routing.prevLine.getLatLngs() : null;
+        var latLng1 = prevLatLngs ? prevLatLngs[prevLatLngs.length - 1] : m1.getLatLng();
+        var nextLatLngs = m2._routing.nextLine ? m2._routing.nextLine.getLatLngs() : null;
+        var latLng2 = nextLatLngs && !m2._routing.beeline ? nextLatLngs[0] : m2.getLatLng();
+        var style = this.options.styles.beeline;
+
+        var layer = new L.Polyline([latLng1, latLng2], style);
+        this._updateLayer(m1, m2, layer);
+      }
+    });
+  }
+
+  ,_updateLayer: function(m1, m2, layer) {
+    layer._routing = {
+      prevMarker: m1
+      ,nextMarker: m2
+      ,beeline: m1._routing.beeline
+    };
+
+    if (m1._routing.nextLine !== null) {
+      this._segments.removeLayer(m1._routing.nextLine);
+    }
+    this._segments.addLayer(layer);
+
+    m1._routing.nextLine = layer;
+    m2._routing.prevLine = layer;
   }
 
   /**

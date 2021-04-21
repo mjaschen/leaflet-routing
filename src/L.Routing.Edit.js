@@ -309,6 +309,7 @@ L.Routing.Edit = L.Handler.extend({
     this.fire('segment:click');
     this._parent.fire('routing:rerouteSegmentStart');
     this._parent._routeSegment(prev, next, function(err, data) {
+      $this._parent._updateBeelines();
       $this._parent.fire('routing:rerouteSegmentEnd', { err: err });
     });
   }
