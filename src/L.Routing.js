@@ -289,6 +289,7 @@ L.Routing = L.Control.extend({
     if (prev !== null) {
       prev._routing.nextMarker = next;
       prev._routing.nextLine = null;
+      prev._routing.beeline = false;
     }
 
     if (next !== null) {
