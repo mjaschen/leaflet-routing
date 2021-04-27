@@ -299,7 +299,7 @@ L.Routing.Draw = L.Handler.extend({
       latlng = L.LineUtil.snapToLayers(latlng, null, this.options.snapping);
     }
     last = this._parent.getLast();
-    if (last && e.originalEvent.ctrlKey) {
+    if (last && e.originalEvent[this.options.shortcut.draw.beelineModifier]) {
       last._routing.beeline = true;
     }
 

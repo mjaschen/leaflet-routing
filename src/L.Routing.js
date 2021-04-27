@@ -50,8 +50,9 @@ L.Routing = L.Control.extend({
     }
     ,shortcut: {
       draw: {
-        enable: 68,      // char code for 'd'
-        disable: 81      // char code for 'q'
+        enable: 68       // char code for 'd'
+        ,disable: 81     // char code for 'q'
+        ,beelineModifier: 'altKey' // modifier key to draw straight line on click [shiftKey|altKey|ctrlKey|metaKey]
       }
     }
   }
