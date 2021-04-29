@@ -38,6 +38,7 @@ L.Routing = L.Control.extend({
       ,track: {}
       ,nodata: {}
       ,beeline: {}
+      ,beelineTrailer: {}
     }
     ,zIndexOffset: 2000
     ,routing: {
@@ -52,8 +53,10 @@ L.Routing = L.Control.extend({
       draw: {
         enable: 68       // char code for 'd'
         ,disable: 81     // char code for 'q'
-        ,beelineModifier: 'altKey' // modifier key to draw straight line on click [shiftKey|altKey|ctrlKey|metaKey]
-      }
+        ,beelineMode: 66 // char code for 'b'
+        ,beelineModifier: 16 // char code for 'Shift', same key as `beelineModifierName`
+        ,beelineModifierName: 'shiftKey' // modifier key to draw straight line on click [shiftKey|altKey|ctrlKey|metaKey|null]
+}
     }
   }
 
@@ -99,6 +102,7 @@ L.Routing = L.Control.extend({
     //this._tooltip.updateContent({ text: L.drawLocal.draw.marker.tooltip.start });
 
     if (this.options.shortcut) {
+      L.DomEvent.addListener(this._container, 'keydown', this._keydownListener, this);
       L.DomEvent.addListener(this._container, 'keyup', this._keyupListener, this);
     }
 
@@ -139,7 +143,8 @@ L.Routing = L.Control.extend({
     L.DomUtil.enableTextSelection();
     // this._tooltip.dispose();
     // this._tooltip = null;
-    L.DomEvent.removeListener(this._container, 'keyup', this._keyupListener);
+    L.DomEvent.removeListener(this._container, 'keydown', this._keydownListener, this);
+    L.DomEvent.removeListener(this._container, 'keyup', this._keyupListener, this);
 
     delete this._draw;
     delete this._edit;
@@ -743,6 +748,10 @@ L.Routing = L.Control.extend({
     }
   }
 
+  ,toggleBeelineDrawing: function () {
+    this._draw.toggleBeelineMode();
+  }
+
   /**
    * Enable or disable routing
    *
@@ -784,6 +793,16 @@ L.Routing = L.Control.extend({
       this._draw.disable();
     } else if (e.keyCode === this.options.shortcut.draw.enable) {
       this._draw.enable();
+    } else if (e.keyCode === this.options.shortcut.draw.beelineMode) {
+      this.toggleBeelineDrawing();
+    } else if (e.keyCode === this.options.shortcut.draw.beelineModifier) {
+      this._draw._setTrailerStyle(false);
+    }
+  }
+
+  ,_keydownListener: function (e) {
+    if (e.keyCode === this.options.shortcut.draw.beelineModifier) {
+      this._draw._setTrailerStyle(true);
     }
   }
 

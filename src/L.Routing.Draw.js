@@ -54,6 +54,7 @@ L.Routing.Draw = L.Handler.extend({
     this._enabled  = true;
     this._hidden   = false;
     this._dragging = false;
+    this._beelineMode = false;
     this._addHooks();
     this.fire('enabled');
 
@@ -128,6 +129,8 @@ L.Routing.Draw = L.Handler.extend({
     this._map.on('mousemove', this._onMouseMove, this);
     this._map.on('click', this._onMouseClick, this);
 
+    L.DomEvent.addListener(window, 'blur', this._onblur, this);
+
     this._marker.addTo(this._map);
     this._trailer.addTo(this._map);
   }
@@ -157,6 +160,8 @@ L.Routing.Draw = L.Handler.extend({
 
     this._map.off('click', this._onMouseClick, this);
     this._map.off('mousemove', this._onMouseMove, this);
+
+    L.DomEvent.removeListener(window, 'blur', this._onblur, this);
 
     this._map.removeLayer(this._marker);
     this._map.removeLayer(this._trailer);
@@ -292,15 +297,17 @@ L.Routing.Draw = L.Handler.extend({
   ,_onMouseClick: function(e) {
     if (this._hidden) { return; }
 
-    var latlng, last;
+    var latlng, last, modifierKey, modify;
 
     latlng = e.latlng;
     if (this.options.snapping) {
       latlng = L.LineUtil.snapToLayers(latlng, null, this.options.snapping);
     }
     last = this._parent.getLast();
-    if (last && e.originalEvent[this.options.shortcut.draw.beelineModifier]) {
-      last._routing.beeline = true;
+    if (last) {
+      modifierKey = this.options.shortcut.draw.beelineModifierName;
+      modify = modifierKey && e.originalEvent[modifierKey]
+      last._routing.beeline = this._isBeelineDrawing(modify);
     }
 
     this._setTrailer(latlng, latlng);
@@ -308,4 +315,34 @@ L.Routing.Draw = L.Handler.extend({
       // console.log(err, data);
     });
   }
+
+  ,toggleBeelineMode: function() {
+    if (!this._enabled || this._hidden) { return; }
+
+    this._beelineMode = !this._beelineMode;
+    this._setTrailerStyle();
+  }
+
+  ,_setTrailerStyle: function(beelineModify) {
+    if (!this._enabled) { return; }
+
+    var beeline = this._isBeelineDrawing(beelineModify);
+    var style = beeline ? this.options.styles.beelineTrailer : this.options.styles.trailer;
+    var opacity = this._trailer.options.opacity;
+
+    this._trailer.setStyle(L.extend({}, style, { opacity: opacity }));
+  }
+
+  ,_isBeelineDrawing: function(modify) {
+    // pressing the modifier key on click inverts the beeline mode for the current line
+    return modify ? !this._beelineMode : this._beelineMode;
+  }
+
+  ,_onblur: function(e) {
+    if (!this._enabled) { return; }
+
+    // reset trailer style as we can't detect keyup events anymore when window loses focus
+    this._setTrailerStyle();
+  }
+
 });
