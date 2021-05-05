@@ -33,6 +33,7 @@ L.Routing.Draw = L.Handler.extend({
     this._map = parent._map;
 
     this._enabled = false;
+    this._beelineMode = false;
 
     L.Util.setOptions(this, options);
   }
@@ -54,7 +55,6 @@ L.Routing.Draw = L.Handler.extend({
     this._enabled  = true;
     this._hidden   = false;
     this._dragging = false;
-    this._beelineMode = false;
     this._addHooks();
     this.fire('enabled');
 
@@ -108,8 +108,9 @@ L.Routing.Draw = L.Handler.extend({
     // Trailing line
     if (!this._trailer) {
       var ll = this._map.getCenter();
+      var trailerStyle = this._beelineMode ? this.options.styles.beelineTrailer : this.options.styles.trailer;
       this._trailerOpacity = this.options.styles.trailer.opacity || 0.2;
-      var style = L.extend({}, this.options.styles.trailer, {
+      var style = L.extend({}, trailerStyle, {
         opacity: 0.0
         ,interactive: false
       });
@@ -317,10 +318,13 @@ L.Routing.Draw = L.Handler.extend({
   }
 
   ,toggleBeelineMode: function() {
-    if (!this._enabled || this._hidden) { return; }
+    if (!this._enabled) { return this._beelineMode; }
 
     this._beelineMode = !this._beelineMode;
     this._setTrailerStyle();
+    this._map.fire(this._beelineMode ? 'routing:beeline-start' : 'routing:beeline-end');
+
+    return this._beelineMode;
   }
 
   ,_setTrailerStyle: function(beelineModify) {

@@ -749,7 +749,7 @@ L.Routing = L.Control.extend({
   }
 
   ,toggleBeelineDrawing: function () {
-    this._draw.toggleBeelineMode();
+    return this._draw.toggleBeelineMode();
   }
 
   /**
