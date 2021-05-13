@@ -73,6 +73,11 @@ L.Routing = L.Control.extend({
     this._editing = false;
     this._drawing = false;
 
+    // Browser with touch events. Like L.Browser.touch, but without pointer events,
+    // which are also supported on desktop (e.g. in Firefox)
+    this.touch = !window.L_NO_TOUCH && ('ontouchstart' in window ||
+		  (window.DocumentTouch && document instanceof window.DocumentTouch));
+
     L.Util.setOptions(this, options);
   }
 
@@ -110,8 +115,13 @@ L.Routing = L.Control.extend({
     this._edit = new L.Routing.Edit(this, this.options);
     this._edit.enable();
 
-    this.on('waypoint:click', this._waypointClickHandler, this)
-    this._segments.on('mouseover'    , this._fireSegmentEvent, this);
+    this.on('waypoint:click', this._waypointClickHandler, this);
+
+    if (this.touch) {
+      this._segments.on('layeradd', this._fireSegmentEvent, this);
+    } else {
+      this._segments.on('mouseover', this._fireSegmentEvent, this);
+    }
     this._edit.on('segment:mouseout' , this._fireSegmentEvent, this);
     this._edit.on('segment:dragstart', this._fireSegmentEvent, this);
     this._edit.on('segment:dragend'  , this._fireSegmentEvent, this);
@@ -132,7 +142,12 @@ L.Routing = L.Control.extend({
     //L.DomUtil.create('div', 'leaflet-routing'); <= delete this
 
     this.off('waypoint:click', this._waypointClickHandler, this)
-    this._segments.off('mouseover'    , this._fireSegmentEvent, this);
+
+    if (this.touch) {
+      this._segments.off('layeradd', this._fireSegmentEvent, this);
+    } else {
+      this._segments.off('mouseover', this._fireSegmentEvent, this);
+    }
     this._edit.off('segment:mouseout' , this._fireSegmentEvent, this);
     this._edit.off('segment:dragstart', this._fireSegmentEvent, this);
     this._edit.off('segment:dragend'  , this._fireSegmentEvent, this);
@@ -513,10 +528,16 @@ L.Routing = L.Control.extend({
    *
   */
   ,_fireSegmentEvent: function(e) {
+    var data = {};
+
+    if (e.layer) {
+      data.layer = e.layer;
+    }
+
     if (e.type.split(':').length === 2) {
-      this.fire(e.type);
+      this.fire(e.type, data);
     } else {
-      this.fire('segment:' + e.type);
+      this.fire('segment:' + e.type, data);
     }
   }
 

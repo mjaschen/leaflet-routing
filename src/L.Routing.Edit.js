@@ -119,7 +119,12 @@ L.Routing.Edit = L.Handler.extend({
     this._trailer1.addTo(this._map);
     this._trailer2.addTo(this._map);
 
-    this._parent.on('segment:mouseover' , this._segmentOnMouseover, this);
+    if (this._parent.touch) {
+      this._parent.on('segment:layeradd', this._segmentOnAdd, this);
+      L.DomEvent.on(this._mouseMarker._icon, 'touchend contextmenu', this._hideMouseMarker, this);
+    } else {
+      this._parent.on('segment:mouseover', this._segmentOnMouseover, this);
+    }
 
     this._mouseMarker.on('dragstart'    , this._segmentOnDragstart, this);
     this._mouseMarker.on('drag'         , this._segmentOnDrag, this);
@@ -148,7 +153,12 @@ L.Routing.Edit = L.Handler.extend({
     // this._trailer1.addTo(this._map);
     // this._trailer2.addTo(this._map);
 
-    this._parent.off('segment:mouseover' , this._segmentOnMouseover, this);
+    if (this._parent.touch) {
+      this._parent.off('segment:layeradd', this._segmentOnAdd, this);
+      L.DomEvent.off(this._mouseMarker._icon, 'touchend contextmenu', this._hideMouseMarker, this);
+    } else {
+      this._parent.off('segment:mouseover', this._segmentOnMouseover, this);
+    }
 
     this._mouseMarker.off('dragstart'    , this._segmentOnDragstart, this);
     this._mouseMarker.off('drag'         , this._segmentOnDrag, this);
@@ -171,7 +181,7 @@ L.Routing.Edit = L.Handler.extend({
    * @return void
   */
   ,_segmentOnMouseover: function(e) {
-    this._mouseMarker.setOpacity(1.0);
+    this._showMouseMarker();
     this._map.on('mousemove', this._segmentOnMousemove, this);
   }
 
@@ -187,7 +197,7 @@ L.Routing.Edit = L.Handler.extend({
   ,_segmentOnMouseout: function(e) {
     if (this._dragging) { return; }
 
-    this._mouseMarker.setOpacity(0.0);
+    this._hideMouseMarker();
     this._map.off('mousemove', this._segmentOnMousemove, this);
 
     this.fire('segment:mouseout');
@@ -219,6 +229,39 @@ L.Routing.Edit = L.Handler.extend({
       this._mouseMarker._snapping = latlng._feature._routing;
       this._mouseMarker.setLatLng(latlng);
     }
+  }
+
+  ,_segmentOnAdd: function(e) {
+    var layer = e.layer;
+
+    // Listening to drag start events on the layer is not working for Chrome mobile (Leaflet#5556).
+    // So we register DOM events on the path element instead (like in L.Draggable.enable).
+    L.DomEvent.on(layer._path, 'touchstart', L.bind(this._segmentOnTouchstart, this, layer), this);
+    L.DomEvent.on(layer._path, 'touchend', this._hideMouseMarker, this);
+  }
+
+  ,_segmentOnTouchstart: function(layer, e) {
+    // For direct segment dragging on mobile we don't rely on the 'mouseover' compatibility event to show 
+    // the mouse marker first, but listen to `touchstart` on the path element itself. We move the mouse marker 
+    // to the event position and forward the event, to let it handle the actual dragging.
+
+    // convert mouse screen pixels to layer position (taken from L.Draggable._onDown and L.Map._fireDOMEvent)
+    if (e.touches) {
+      e.clientX = e.touches[0].clientX;
+      e.clientY = e.touches[0].clientY;
+    }
+    var containerPoint = this._map.mouseEventToContainerPoint(e);
+    var layerPoint = this._map.containerPointToLayerPoint(containerPoint);
+
+    L.DomUtil.setPosition(this._mouseMarker._icon, layerPoint);
+
+    // no need to snap on mobile without hover (replaces _segmentOnMouseover and _segmentOnMousemove)
+    this._showMouseMarker();
+    this._mouseMarker._snapping = layer._routing;
+
+    // L.DomEvent uses Pointer events for `touch*` where supported (Firefox mobile), 
+    // so `new TouchEvent` causes error, use same class with `constructor` instead
+    this._mouseMarker._icon.dispatchEvent(new e.constructor(e.type, e));
   }
 
   /**
@@ -413,6 +456,14 @@ L.Routing.Edit = L.Handler.extend({
     if (prev) {
       this._trailer2.setLatLngs([latlng, prev.getLatLng()]);
     }
+  }
+
+  ,_hideMouseMarker: function () {
+    this._mouseMarker.setOpacity(0.0);
+  }
+
+  ,_showMouseMarker: function () {
+    this._mouseMarker.setOpacity(1.0);
   }
 });
 
