@@ -120,8 +120,17 @@ L.Routing.Edit = L.Handler.extend({
     this._trailer2.addTo(this._map);
 
     if (this._parent.touch) {
+      // Leaflet canvas is not listening to touch events for layers on mobile.
+      // So we register DOM touch events on the canvas ourselves (like in L.Canvas._initContainer).
+      this._canvas = this._map.options.renderer || this._map._renderer;
+      if (this._canvas instanceof L.Canvas) {
+        L.DomEvent.on(this._canvas._container, 'touchstart touchend', this._canvas._onTouch, this._canvas);
+      } else {
+        console.error('Expecting default map renderer to be Canvas'); // for now
+      }
       this._parent.on('segment:layeradd', this._segmentOnAdd, this);
-      L.DomEvent.on(this._mouseMarker._icon, 'touchend contextmenu', this._hideMouseMarker, this);
+      L.DomEvent.on(this._mouseMarker._icon, 'touchend pointerup contextmenu', this._hideMouseMarker, this);
+      this.on('segment:dragend', this._hideMouseMarker, this); // touchend above doesn't work for some reason
     } else {
       this._parent.on('segment:mouseover', this._segmentOnMouseover, this);
     }
@@ -154,8 +163,12 @@ L.Routing.Edit = L.Handler.extend({
     // this._trailer2.addTo(this._map);
 
     if (this._parent.touch) {
+      if (this._canvas instanceof L.Canvas) {
+        L.DomEvent.off(this._canvas._container, 'touchstart touchend', this._canvas._onTouch, this._canvas);
+      }
       this._parent.off('segment:layeradd', this._segmentOnAdd, this);
       L.DomEvent.off(this._mouseMarker._icon, 'touchend contextmenu', this._hideMouseMarker, this);
+      this.off('segment:dragend', this._hideMouseMarker, this);
     } else {
       this._parent.off('segment:mouseover', this._segmentOnMouseover, this);
     }
@@ -234,26 +247,19 @@ L.Routing.Edit = L.Handler.extend({
   ,_segmentOnAdd: function(e) {
     var layer = e.layer;
 
-    // Listening to drag start events on the layer is not working for Chrome mobile (Leaflet#5556).
-    // So we register DOM events on the path element instead (like in L.Draggable.enable).
-    L.DomEvent.on(layer._path, 'touchstart', L.bind(this._segmentOnTouchstart, this, layer), this);
-    L.DomEvent.on(layer._path, 'touchend', this._hideMouseMarker, this);
+    layer.on('touchstart pointerdown', this._segmentOnTouchstart, this);
+    layer.on('touchend pointerup', this._hideMouseMarker, this);
   }
 
-  ,_segmentOnTouchstart: function(layer, e) {
+  ,_segmentOnTouchstart: function(e) {
     // For direct segment dragging on mobile we don't rely on the 'mouseover' compatibility event to show 
-    // the mouse marker first, but listen to `touchstart` on the path element itself. We move the mouse marker 
+    // the mouse marker first, but listen to `touchstart` on the canvas element. We move the mouse marker 
     // to the event position and forward the event, to let it handle the actual dragging.
 
-    // convert mouse screen pixels to layer position (taken from L.Draggable._onDown and L.Map._fireDOMEvent)
-    if (e.touches) {
-      e.clientX = e.touches[0].clientX;
-      e.clientY = e.touches[0].clientY;
-    }
-    var containerPoint = this._map.mouseEventToContainerPoint(e);
-    var layerPoint = this._map.containerPointToLayerPoint(containerPoint);
+    var layer = e.target;
 
-    L.DomUtil.setPosition(this._mouseMarker._icon, layerPoint);
+    L.DomUtil.setPosition(this._mouseMarker._icon, e.layerPoint);
+    this._mouseMarker.setLatLng(e.latlng); // used in _segmentOnDragstart
 
     // no need to snap on mobile without hover (replaces _segmentOnMouseover and _segmentOnMousemove)
     this._showMouseMarker();
@@ -261,7 +267,8 @@ L.Routing.Edit = L.Handler.extend({
 
     // L.DomEvent uses Pointer events for `touch*` where supported (Firefox mobile), 
     // so `new TouchEvent` causes error, use same class with `constructor` instead
-    this._mouseMarker._icon.dispatchEvent(new e.constructor(e.type, e));
+    const oe = e.originalEvent;
+    this._mouseMarker._icon.dispatchEvent(new oe.constructor(oe.type, oe));
   }
 
   /**
@@ -467,3 +474,24 @@ L.Routing.Edit = L.Handler.extend({
   }
 });
 
+// Handle touch events on canvas. Modified _onClick method, mainly to disable `_draggableMoved` check.
+L.Canvas.prototype._onTouch = function (e) {
+  var touches = e.touches && e.touches.length > 0 ? e.touches : e.changedTouches;
+  if (touches && !e.clientX) {
+    e.clientX = touches[0].clientX;
+    e.clientY = touches[0].clientY;
+  }
+  var point = this._map.mouseEventToLayerPoint(e), layer, clickedLayer;
+
+  for (var order = this._drawFirst; order; order = order.next) {
+    layer = order.layer;
+    if (layer.options.interactive && layer._containsPoint(point)) {
+      // `_draggableMoved` check removed, only relevant for click
+      clickedLayer = layer;
+    }
+  }
+  if (clickedLayer)  {
+    L.DomEvent.fakeStop(e);
+    this._fireEvent([clickedLayer], e);
+  }
+};
