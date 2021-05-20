@@ -102,12 +102,10 @@ L.Routing.Edit = L.Handler.extend({
         })
         ,interactive: true
         ,draggable: true
-        ,opacity: 0
         ,zIndexOffset: this.options.zIndexOffset
         ,title: this.options.tooltips.segment
       });
     }
-    this._mouseMarker.addTo(this._map);
 
     if (!this._trailer1) {
       var ll = this._map.getCenter();
@@ -466,11 +464,11 @@ L.Routing.Edit = L.Handler.extend({
   }
 
   ,_hideMouseMarker: function () {
-    this._mouseMarker.setOpacity(0.0);
+    this._mouseMarker.remove();
   }
 
   ,_showMouseMarker: function () {
-    this._mouseMarker.setOpacity(1.0);
+    this._mouseMarker.addTo(this._map);
   }
 });
 
