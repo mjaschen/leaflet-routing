@@ -301,16 +301,18 @@ L.Routing = L.Control.extend({
     } 
     if (removedLast) {
       this._waypoints._last = prev;
-      // do not replace previous marker if it was the start!
-      if (prev && prev._leaflet_id !== this.getFirst()._leaflet_id) {
-        prev.setIcon(this.options.icons.end);
+      if (prev) {
+        // do not replace previous marker if it was the start!
+        if (prev._leaflet_id !== this.getFirst()._leaflet_id) {
+          prev.setIcon(this.options.icons.end);
+        }
+        prev._routing.beeline = false;
       }
     }
 
     if (prev !== null) {
       prev._routing.nextMarker = next;
       prev._routing.nextLine = null;
-      prev._routing.beeline = false;
     }
 
     if (next !== null) {
