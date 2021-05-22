@@ -243,7 +243,7 @@ L.Routing.Draw = L.Handler.extend({
    * @return void
   */
   ,_showTrailer: function() {
-    if (this._trailer.options.opacity === 0.0) {
+    if (this._trailer.options.opacity === 0.0 && !this._parent.touch) {
       this._trailer.setStyle({opacity: this._trailerOpacity});
     }
   }
