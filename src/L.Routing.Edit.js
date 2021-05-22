@@ -127,8 +127,8 @@ L.Routing.Edit = L.Handler.extend({
         console.error('Expecting default map renderer to be Canvas'); // for now
       }
       this._parent.on('segment:layeradd', this._segmentOnAdd, this);
-      L.DomEvent.on(this._mouseMarker._icon, 'touchend pointerup contextmenu', this._hideMouseMarker, this);
-      this.on('segment:dragend', this._hideMouseMarker, this); // touchend above doesn't work for some reason
+      L.DomEvent.on(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
+      this.on('segment:dragend', this._hideMouseMarker, this);
     } else {
       this._parent.on('segment:mouseover', this._segmentOnMouseover, this);
     }
@@ -165,7 +165,7 @@ L.Routing.Edit = L.Handler.extend({
         L.DomEvent.off(this._canvas._container, 'touchstart touchend', this._canvas._onTouch, this._canvas);
       }
       this._parent.off('segment:layeradd', this._segmentOnAdd, this);
-      L.DomEvent.off(this._mouseMarker._icon, 'touchend contextmenu', this._hideMouseMarker, this);
+      L.DomEvent.off(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
       this.off('segment:dragend', this._hideMouseMarker, this);
     } else {
       this._parent.off('segment:mouseover', this._segmentOnMouseover, this);
@@ -246,7 +246,7 @@ L.Routing.Edit = L.Handler.extend({
     var layer = e.layer;
 
     layer.on('touchstart pointerdown', this._segmentOnTouchstart, this);
-    layer.on('touchend pointerup', this._hideMouseMarker, this);
+    this.on('segment:click', this._hideMouseMarker, this);
   }
 
   ,_segmentOnTouchstart: function(e) {
@@ -256,8 +256,7 @@ L.Routing.Edit = L.Handler.extend({
 
     var layer = e.target;
 
-    L.DomUtil.setPosition(this._mouseMarker._icon, e.layerPoint);
-    this._mouseMarker.setLatLng(e.latlng); // used in _segmentOnDragstart
+    this._mouseMarker.setLatLng(e.latlng);
 
     // no need to snap on mobile without hover (replaces _segmentOnMouseover and _segmentOnMousemove)
     this._showMouseMarker();
