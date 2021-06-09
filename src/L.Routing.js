@@ -462,12 +462,18 @@ L.Routing = L.Control.extend({
         var latLng1 = prevLatLngs ? prevLatLngs[prevLatLngs.length - 1] : m1.getLatLng();
         var nextLatLngs = m2._routing.nextLine ? m2._routing.nextLine.getLatLngs() : null;
         var latLng2 = nextLatLngs && !m2._routing.beeline ? nextLatLngs[0] : m2.getLatLng();
-        var style = this.options.styles.beeline;
 
-        var layer = new L.Polyline([latLng1, latLng2], style);
+        var layer = this.createBeeline(latLng1, latLng2);
+
         this._updateLayer(m1, m2, layer);
       }
     });
+  }
+
+  ,createBeeline: function(latLng1, latLng2) {
+    var style = this.options.styles.beeline;
+
+    return new L.Polyline([latLng1, latLng2], style);
   }
 
   ,_updateLayer: function(m1, m2, layer) {
