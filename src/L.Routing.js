@@ -195,7 +195,7 @@ L.Routing = L.Control.extend({
    *
    * @return void
   */
-  ,addWaypoint: function(marker, prev, next, cb) {
+  ,addWaypoint: function(marker, beeline, prev, next, cb) {
     if (marker instanceof L.LatLng) {
       marker = new L.Marker(marker, { title: this.options.tooltips.waypoint, draggable: true });
     }
@@ -207,7 +207,7 @@ L.Routing = L.Control.extend({
       ,nextLine   : null
       ,timeoutID  : null
       // nextLine is a straight line to next marker without routing
-      ,beeline    : false
+      ,beeline    : beeline || false
     };
 
     var icons = this.options.icons;
@@ -592,6 +592,16 @@ L.Routing = L.Control.extend({
     return latLngs;
   }
 
+  ,getBeelineFlags: function() {
+    var flags = [];
+
+    this._eachSegment(function(m1) {
+      flags.push(m1._routing.beeline);
+    });
+
+    return flags;
+  }
+
   /**
    * Concatenates all route segments to a single polyline
    *
@@ -745,7 +755,7 @@ L.Routing = L.Control.extend({
       var coords = waypoints[index].coordinates;
       var prev = $this._waypoints._last;
 
-      $this.addWaypoint(L.latLng(coords[1], coords[0]), prev, null, function(err, m) {
+      $this.addWaypoint(L.latLng(coords[1], coords[0]), null, prev, null, function(err, m) {
         add(++index);
       });
     }

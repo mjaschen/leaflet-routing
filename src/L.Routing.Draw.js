@@ -312,7 +312,7 @@ L.Routing.Draw = L.Handler.extend({
     }
 
     this._setTrailer(latlng, latlng);
-    this._parent.addWaypoint(latlng, last, null, function(err, data) {
+    this._parent.addWaypoint(latlng, null, last, null, function(err, data) {
       // console.log(err, data);
     });
   }

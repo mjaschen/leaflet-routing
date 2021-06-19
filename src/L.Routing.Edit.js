@@ -327,7 +327,7 @@ L.Routing.Edit = L.Handler.extend({
     var prev = this._mouseMarker._snapping.prevMarker;
     var latlng = this._mouseMarker.getLatLng();
 
-    this._parent.addWaypoint(latlng, prev, next, function(err, data) {
+    this._parent.addWaypoint(latlng, null, prev, next, function(err, data) {
       //console.log(err, data);
     });
 
