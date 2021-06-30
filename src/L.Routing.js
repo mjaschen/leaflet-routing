@@ -463,7 +463,7 @@ L.Routing = L.Control.extend({
         var nextLatLngs = m2._routing.nextLine ? m2._routing.nextLine.getLatLngs() : null;
         var latLng2 = nextLatLngs && !m2._routing.beeline ? nextLatLngs[0] : m2.getLatLng();
 
-        var layer = this.createBeeline(latLng1, latLng2);
+        var layer = this.createBeeline(latLng1.clone(), latLng2.clone());
 
         this._updateLayer(m1, m2, layer);
       }
