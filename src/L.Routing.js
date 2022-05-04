@@ -98,6 +98,9 @@ L.Routing = L.Control.extend({
 
     this._router      = this.options.routing.router;
     this._segments    = new L.FeatureGroup().addTo(map);
+    // use Canvas renderer for click/touch tolerance and continuous interativity of dashed lines,
+    // but only on segments, as trailers are lagging behind with Canvas (unlike SVG)
+    this._segmentsRenderer = L.canvas({ tolerance: this.touch ? 10 : 5 });
     this._waypoints   = new L.FeatureGroup().addTo(map);
     this._waypoints._first = null;
     this._waypoints._last = null;
@@ -482,6 +485,7 @@ L.Routing = L.Control.extend({
       ,nextMarker: m2
       ,beeline: m1._routing.beeline
     };
+    layer.options.renderer = this._segmentsRenderer;
 
     if (m1._routing.nextLine !== null) {
       this._segments.removeLayer(m1._routing.nextLine);

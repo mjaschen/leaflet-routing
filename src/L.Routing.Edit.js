@@ -120,11 +120,14 @@ L.Routing.Edit = L.Handler.extend({
     if (this._parent.touch) {
       // Leaflet canvas is not listening to touch events for layers on mobile.
       // So we register DOM touch events on the canvas ourselves (like in L.Canvas._initContainer).
-      this._canvas = this._map.options.renderer || this._map._renderer;
-      if (this._canvas instanceof L.Canvas) {
-        L.DomEvent.on(this._canvas._container, 'touchstart touchend', this._canvas._onTouch, this._canvas);
-      } else {
-        console.error('Expecting default map renderer to be Canvas'); // for now
+      var segmentsRenderer = this._parent._segmentsRenderer;
+      if (segmentsRenderer instanceof L.Canvas) {
+        if (!this._map.hasLayer(segmentsRenderer)) {
+          // manually add renderer to map here to init container, so we can use it
+          // (normally done later when adding first layer with renderer)
+          this._map.addLayer(segmentsRenderer);
+        }
+        L.DomEvent.on(segmentsRenderer._container, 'touchstart touchend', segmentsRenderer._onTouch, segmentsRenderer);
       }
       this._parent.on('segment:layeradd', this._segmentOnAdd, this);
       L.DomEvent.on(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
@@ -161,8 +164,9 @@ L.Routing.Edit = L.Handler.extend({
     // this._trailer2.addTo(this._map);
 
     if (this._parent.touch) {
-      if (this._canvas instanceof L.Canvas) {
-        L.DomEvent.off(this._canvas._container, 'touchstart touchend', this._canvas._onTouch, this._canvas);
+      var segmentsRenderer = this._parent._segmentsRenderer;
+      if (segmentsRenderer instanceof L.Canvas) {
+        L.DomEvent.off(segmentsRenderer._container, 'touchstart touchend', segmentsRenderer._onTouch, segmentsRenderer);
       }
       this._parent.off('segment:layeradd', this._segmentOnAdd, this);
       L.DomEvent.off(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
