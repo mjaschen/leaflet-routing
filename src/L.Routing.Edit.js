@@ -141,6 +141,8 @@ L.Routing.Edit = L.Handler.extend({
     this._mouseMarker.on('dragend'      , this._segmentOnDragend, this);
 
     this._mouseMarker.on('click'        , this._segmentOnClick, this);
+    // prevent map zoom when clicking fast enough twice to trigger double click
+    this._mouseMarker.on('dblclick'     , L.DomEvent.stop, this); 
 
     this._parent.on('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.on('waypoint:drag'     , this._waypointOnDrag, this);
@@ -180,6 +182,7 @@ L.Routing.Edit = L.Handler.extend({
     this._mouseMarker.off('dragend'      , this._segmentOnDragend, this);
 
     this._mouseMarker.off('click'        , this._segmentOnClick, this);
+    this._mouseMarker.off('dblclick'     , L.DomEvent.stop, this); 
 
     this._parent.off('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.off('waypoint:drag'     , this._waypointOnDrag, this);
