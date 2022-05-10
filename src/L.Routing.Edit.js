@@ -237,7 +237,7 @@ L.Routing.Edit = L.Handler.extend({
 
     var latlng = L.LineUtil.snapToLayers(e.latlng, null, {
       layers: [this._parent._segments]
-      ,sensitivity: 40
+      ,sensitivity: this.options.snapSensitivity
       ,vertexonly: false
     });
 

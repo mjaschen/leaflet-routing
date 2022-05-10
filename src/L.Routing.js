@@ -40,6 +40,9 @@ L.Routing = L.Control.extend({
       ,beeline: {}
       ,beelineTrailer: {}
     }
+    ,tolerance: 5        // snapping sensitivity for route segments to show mouse marker (pixels without weight)
+    ,toleranceTouch: 10
+    ,snapSensitivity: 10 // distance from route segment to hide mouse marker (pixels to line center)
     ,zIndexOffset: 2000
     ,routing: {
       router: null       // function (<L.Latlng> l1, <L.Latlng> l2, <Function> cb)
@@ -100,7 +103,8 @@ L.Routing = L.Control.extend({
     this._segments    = new L.FeatureGroup().addTo(map);
     // use Canvas renderer for click/touch tolerance and continuous interativity of dashed lines,
     // but only on segments, as trailers are lagging behind with Canvas (unlike SVG)
-    this._segmentsRenderer = L.canvas({ tolerance: this.touch ? 10 : 5 });
+    this._segmentsTolerance = this.touch ? this.options.toleranceTouch : this.options.tolerance;
+    this._segmentsRenderer = L.canvas({ tolerance: this._segmentsTolerance });
     this._waypoints   = new L.FeatureGroup().addTo(map);
     this._waypoints._first = null;
     this._waypoints._last = null;
