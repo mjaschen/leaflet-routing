@@ -130,8 +130,12 @@ L.Routing.Edit = L.Handler.extend({
         L.DomEvent.on(segmentsRenderer._container, 'touchstart touchend', segmentsRenderer._onTouch, segmentsRenderer);
       }
       this._parent.on('segment:layeradd', this._segmentOnAdd, this);
-      L.DomEvent.on(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
+
       this.on('segment:dragend', this._hideMouseMarker, this);
+
+      // hide mouse marker after long press (`contextmenu` event), fired on marker in Chrome, on segment in Firefox
+      L.DomEvent.on(this._mouseMarker, 'contextmenu', this._segmentOnContextmenu, this);
+      this._parent._segments.on('contextmenu', this._hideMouseMarker, this);
     } else {
       this._parent.on('segment:mouseover', this._segmentOnMouseover, this);
     }
@@ -171,8 +175,9 @@ L.Routing.Edit = L.Handler.extend({
         L.DomEvent.off(segmentsRenderer._container, 'touchstart touchend', segmentsRenderer._onTouch, segmentsRenderer);
       }
       this._parent.off('segment:layeradd', this._segmentOnAdd, this);
-      L.DomEvent.off(this._mouseMarker, 'contextmenu', this._hideMouseMarker, this);
       this.off('segment:dragend', this._hideMouseMarker, this);
+      L.DomEvent.off(this._mouseMarker, 'contextmenu', this._segmentOnContextmenu, this);
+      this._parent._segments.off('contextmenu', this._hideMouseMarker, this);
     } else {
       this._parent.off('segment:mouseover', this._segmentOnMouseover, this);
     }
@@ -366,6 +371,27 @@ L.Routing.Edit = L.Handler.extend({
       $this._parent._updateBeelines();
       $this._parent.fire('routing:rerouteSegmentEnd', { err: err });
     });
+  }
+
+  /**
+   * Long press (`contextmenu` event) handler for mouse marker (Chrome only, Firefox fires directly on segment)
+   *
+   * @access private
+   *
+   * @param <L.Event> e - contextmenu event
+   *
+   * @return void
+  */
+  ,_segmentOnContextmenu: function(e) {
+    this._hideMouseMarker();
+
+    // Show Heightgraph map marker after long press in Chrome by forwarding the event as `mousemove` to segment
+    this._parent._segments.fire('mousemove', e, true);
+
+    // Allow to hide Heightgraph map marker on map tap by registering a click event that forwards a `mouseout` to segment
+    this._map.once('click', function(e) {
+      this._parent._segments.fire('mouseout', e, true)
+    }, this);
   }
 
   /**
