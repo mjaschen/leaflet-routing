@@ -1,6 +1,6 @@
 {
   "name": "leaflet-routing",
-  "version": "0.1.4-alpha.3",
+  "version": "0.1.4-beta",
   "description": "A routing controller for the popular Leaflet mapping framework",
   "main": "src/L.Routing.js",
   "files": [
