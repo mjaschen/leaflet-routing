@@ -295,6 +295,9 @@ L.Routing = L.Control.extend({
     marker.off('drag'     , this._fireWaypointEvent, this);
     marker.off('click'    , this._fireWaypointEvent, this);
 
+    // mark as dangling if some callback is still waiting for this one
+    marker._removed = true;
+
     var prev = marker._routing.prevMarker;
     var next = marker._routing.nextMarker;
 
@@ -484,6 +487,14 @@ L.Routing = L.Control.extend({
   }
 
   ,_updateLayer: function(m1, m2, layer) {
+    if (m1._removed || m2._removed) {
+      // don't add layers connecting to waypoints that no longer exist!
+      // A known cause is when the user removes the waypoint before the
+      // backend was able to respond.
+      // console.warn('Dangeling route layer detected!');
+      return;
+    }
+
     layer._routing = {
       prevMarker: m1
       ,nextMarker: m2
