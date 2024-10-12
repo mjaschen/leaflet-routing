@@ -521,7 +521,7 @@ L.Canvas.prototype._onTouch = function (e) {
     }
   }
   if (clickedLayer)  {
-    L.DomEvent.fakeStop(e);
+    // L.DomEvent.fakeStop(e);
     this._fireEvent([clickedLayer], e);
   }
 };
