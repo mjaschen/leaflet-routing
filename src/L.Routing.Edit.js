@@ -146,7 +146,7 @@ L.Routing.Edit = L.Handler.extend({
 
     this._mouseMarker.on('click'        , this._segmentOnClick, this);
     // prevent map zoom when clicking fast enough twice to trigger double click
-    this._mouseMarker.on('dblclick'     , L.DomEvent.stop, this); 
+    this._mouseMarker.on('dblclick'     , L.DomEvent.stop, this);
 
     this._parent.on('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.on('waypoint:drag'     , this._waypointOnDrag, this);
@@ -187,7 +187,7 @@ L.Routing.Edit = L.Handler.extend({
     this._mouseMarker.off('dragend'      , this._segmentOnDragend, this);
 
     this._mouseMarker.off('click'        , this._segmentOnClick, this);
-    this._mouseMarker.off('dblclick'     , L.DomEvent.stop, this); 
+    this._mouseMarker.off('dblclick'     , L.DomEvent.stop, this);
 
     this._parent.off('waypoint:dragstart', this._waypointOnDragstart, this);
     this._parent.off('waypoint:drag'     , this._waypointOnDrag, this);
@@ -262,8 +262,8 @@ L.Routing.Edit = L.Handler.extend({
   }
 
   ,_segmentOnTouchstart: function(e) {
-    // For direct segment dragging on mobile we don't rely on the 'mouseover' compatibility event to show 
-    // the mouse marker first, but listen to `touchstart` on the canvas element. We move the mouse marker 
+    // For direct segment dragging on mobile we don't rely on the 'mouseover' compatibility event to show
+    // the mouse marker first, but listen to `touchstart` on the canvas element. We move the mouse marker
     // to the event position and forward the event, to let it handle the actual dragging.
 
     var layer = e.target;
@@ -274,7 +274,7 @@ L.Routing.Edit = L.Handler.extend({
     this._showMouseMarker();
     this._mouseMarker._snapping = layer._routing;
 
-    // L.DomEvent uses Pointer events for `touch*` where supported (Firefox mobile), 
+    // L.DomEvent uses Pointer events for `touch*` where supported (Firefox mobile),
     // so `new TouchEvent` causes error, use same class with `constructor` instead
     const oe = e.originalEvent;
     this._mouseMarker._icon.dispatchEvent(new oe.constructor(oe.type, oe));
@@ -521,7 +521,7 @@ L.Canvas.prototype._onTouch = function (e) {
     }
   }
   if (clickedLayer)  {
-    // L.DomEvent.fakeStop(e);
+    L.DomEvent.stopPropagation(e);
     this._fireEvent([clickedLayer], e);
   }
 };
