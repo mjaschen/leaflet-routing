@@ -308,7 +308,7 @@ L.Routing = L.Control.extend({
       if (next) {
         next.setIcon(this.options.icons.start);
       }
-    } 
+    }
     if (removedLast) {
       this._waypoints._last = prev;
       if (prev) {
@@ -349,6 +349,7 @@ L.Routing = L.Control.extend({
       cb(null, null);
     }
 
+    this._draw._show();
   }
 
   /**
