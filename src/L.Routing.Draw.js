@@ -215,7 +215,9 @@ L.Routing.Draw = L.Handler.extend({
   */
   ,_hide: function() {
     this._hidden = true;
-    this._marker.setOpacity(0.0);
+    if (this._marker) {
+        this._marker.setOpacity(0.0);
+    }
     this._trailer.setStyle({opacity: 0.0});
   }
 
@@ -231,7 +233,9 @@ L.Routing.Draw = L.Handler.extend({
   */
   ,_show: function() {
     this._hidden = false;
-    this._marker.setOpacity(this.options.icons.draw ? 1.0 : 0.0);
+    if (this._marker) {
+        this._marker.setOpacity(this.options.icons.draw ? 1.0 : 0.0);
+    }
     this._showTrailer();
   }
 
