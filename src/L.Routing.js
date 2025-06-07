@@ -349,7 +349,9 @@ L.Routing = L.Control.extend({
       cb(null, null);
     }
 
-    this._draw._show();
+    if (this._draw._enabled) {
+        this._draw._show();
+    }
   }
 
   /**
